@@ -1,0 +1,76 @@
+### Meal Service Endpoints
+
+@baseUrl = http://localhost:3003
+@accessToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0MGZmODQ0NC1lZmE3LTQ3MjktYTMyNC05MzRkOWRiN2IzYmQiLCJlbWFpbCI6ImRlbW9AdGlmZmluLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzYwNDMwNTQ1LCJleHAiOjE3NjA0MzE0NDV9.JnLMIieajSvvZdZ-OPjToRP0DdYoC41tAaTrebpv3cI
+
+### Create or Update Meal
+POST {{baseUrl}}/meals
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "date": "2024-01-20",
+  "mealType": "LUNCH",
+  "count": 2,
+  "note": "Extra spicy"
+}
+
+### Create Breakfast
+POST {{baseUrl}}/meals
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "date": "2024-01-20",
+  "mealType": "BREAKFAST",
+  "count": 1
+}
+
+### Create Dinner
+POST {{baseUrl}}/meals
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "date": "2024-01-20",
+  "mealType": "DINNER",
+  "count": 1,
+  "note": "Light meal"
+}
+
+### List All Meals
+GET {{baseUrl}}/meals
+Authorization: Bearer {{accessToken}}
+
+### List Meals by Date
+GET {{baseUrl}}/meals?date=2024-01-20
+Authorization: Bearer {{accessToken}}
+
+### List Meals by Type
+GET {{baseUrl}}/meals?mealType=LUNCH
+Authorization: Bearer {{accessToken}}
+
+### List Meals by Date and Type
+GET {{baseUrl}}/meals?date=2024-01-20&mealType=LUNCH
+Authorization: Bearer {{accessToken}}
+
+### Update Meal (replace :id with actual meal ID)
+PATCH {{baseUrl}}/meals/:id
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "count": 3,
+  "note": "Updated note"
+}
+
+### Cancel Meal (replace :id with actual meal ID)
+DELETE {{baseUrl}}/meals/:id
+Authorization: Bearer {{accessToken}}
+
+### Get Dashboard
+GET {{baseUrl}}/dashboard
+Authorization: Bearer {{accessToken}}
+
+### Meal Service Health
+GET {{baseUrl}}/meals/health

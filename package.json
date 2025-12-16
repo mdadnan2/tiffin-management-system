@@ -1,0 +1,40 @@
+{
+  "name": "tiffin-management-monorepo",
+  "version": "1.0.0",
+  "description": "Tiffin Management System - Full Stack Monorepo",
+  "private": true,
+  "scripts": {
+    "start:auth": "cd backend && npm run start:auth",
+    "start:user": "cd backend && npm run start:user",
+    "start:meal": "cd backend && npm run start:meal",
+    "start:admin": "cd backend && npm run start:admin",
+    "start:frontend": "cd frontend && npm run dev",
+    "start:db": "docker-compose up -d db",
+    
+    "build:backend": "cd backend && npm run build:all",
+    "build:frontend": "cd frontend && npm run build",
+    "build:all": "npm run build:backend && npm run build:frontend",
+    
+    "setup": "cd backend && npm run setup",
+    "migrate": "cd backend && npm run migrate",
+    "seed": "cd backend && npm run seed",
+    "check": "cd backend && npm run check",
+    
+    "docker:up": "docker-compose up -d",
+    "docker:build": "docker-compose up --build -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart",
+    "docker:setup": "cd backend && npm run docker:setup",
+    
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:dev:build": "docker-compose -f docker-compose.dev.yml up --build -d",
+    "docker:dev:down": "docker-compose -f docker-compose.dev.yml down",
+    "docker:dev:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:dev:setup": "cd backend && npm run docker:dev:setup",
+    
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "prisma:generate": "cd backend && npm run prisma:generate",
+    "prisma:studio": "cd backend && npm run prisma:studio"
+  }
+}

@@ -1,0 +1,158 @@
+services:
+  db:
+    image: postgres:15
+    container_name: tiffin-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: tiffin_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - tiffin-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  consul:
+    image: consul:1.15
+    container_name: tiffin-consul
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: agent -server -ui -bootstrap-expect=1 -client=0.0.0.0
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./backend
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: tiffin-auth
+    ports:
+      - "3001:3001"
+    environment:
+      DATABASE_URL: postgresql://postgres:root@db:5432/tiffin_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      JWT_EXPIRATION: 15m
+      JWT_REFRESH_SECRET: your-super-secret-refresh-key-change-in-production
+      JWT_REFRESH_EXPIRATION: 7d
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_NAME: auth-service
+      SERVICE_PORT: 3001
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      consul:
+        condition: service_started
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: ./backend
+      dockerfile: apps/user-service/Dockerfile
+    container_name: tiffin-user
+    ports:
+      - "3002:3002"
+    environment:
+      DATABASE_URL: postgresql://postgres:root@db:5432/tiffin_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_NAME: user-service
+      SERVICE_PORT: 3002
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      consul:
+        condition: service_started
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+  meal-service:
+    build:
+      context: ./backend
+      dockerfile: apps/meal-service/Dockerfile
+    container_name: tiffin-meal
+    ports:
+      - "3003:3003"
+    environment:
+      DATABASE_URL: postgresql://postgres:root@db:5432/tiffin_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_NAME: meal-service
+      SERVICE_PORT: 3003
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      consul:
+        condition: service_started
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+  admin-service:
+    build:
+      context: ./backend
+      dockerfile: apps/admin-service/Dockerfile
+    container_name: tiffin-admin
+    ports:
+      - "3004:3004"
+    environment:
+      DATABASE_URL: postgresql://postgres:root@db:5432/tiffin_db
+      JWT_SECRET: your-super-secret-jwt-key-change-in-production
+      CONSUL_HOST: consul
+      CONSUL_PORT: 8500
+      SERVICE_NAME: admin-service
+      SERVICE_PORT: 3004
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+      consul:
+        condition: service_started
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: tiffin-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_AUTH_SERVICE_URL: http://auth-service:3001
+      NEXT_PUBLIC_USER_SERVICE_URL: http://user-service:3002
+      NEXT_PUBLIC_MEAL_SERVICE_URL: http://meal-service:3003
+      NEXT_PUBLIC_ADMIN_SERVICE_URL: http://admin-service:3004
+    depends_on:
+      - auth-service
+      - user-service
+      - meal-service
+      - admin-service
+    networks:
+      - tiffin-network
+    restart: unless-stopped
+
+volumes:
+  db-data:
+
+networks:
+  tiffin-network:
+    driver: bridge

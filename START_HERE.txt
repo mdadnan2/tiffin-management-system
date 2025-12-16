@@ -1,0 +1,28 @@
+╔═══════════════════════════════════════════════════════════════╗
+║         TIFFIN MANAGEMENT SYSTEM - QUICK START                ║
+╚═══════════════════════════════════════════════════════════════╝
+
+✅ BACKEND SERVICES ARE RUNNING IN DOCKER
+   - Auth Service: http://localhost:3001
+   - User Service: http://localhost:3002
+   - Meal Service: http://localhost:3003
+   - Admin Service: http://localhost:3004
+   - Consul UI: http://localhost:8500/ui
+
+🚀 TO START FRONTEND:
+   
+   Double-click: start-frontend.bat
+   
+   OR run manually:
+   cd frontend
+   npm run dev
+
+📱 ACCESS APPLICATION:
+   http://localhost:3000
+
+🔐 LOGIN CREDENTIALS:
+   User:  demo@tiffin.com / demo123
+   Admin: admin@tiffin.com / demo123
+
+📚 MORE INFO:
+   See QUICK_START.md for detailed instructions

@@ -1,0 +1,19 @@
+### Admin Service Endpoints
+
+@baseUrl = http://localhost:3004
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlODQ4ZGFjYy04NDBiLTQxYjMtOTllMS01MGNjOTQ5MWUzZmEiLCJlbWFpbCI6ImFkbWluQHRpZmZpbi5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NjA0MzA2ODAsImV4cCI6MTc2MDQzMTU4MH0.1PsuPWFLEqUZVpha9xZv-QrnM24C4QOHW-NEYLTwvtk
+
+### Get All Users with Stats
+GET {{baseUrl}}/admin/users
+Authorization: Bearer {{adminToken}}
+
+### Get User Summary (replace :id with actual user ID)
+GET {{baseUrl}}/admin/users/40ff8444-efa7-4729-a324-934d9db7b3bd/summary
+Authorization: Bearer {{adminToken}}
+
+### Get User's Meal Prices (replace :userId with actual user ID)
+GET {{baseUrl}}/admin/users/40ff8444-efa7-4729-a324-934d9db7b3bd/price
+Authorization: Bearer {{adminToken}}
+
+### Admin Service Health
+GET {{baseUrl}}/admin/health
