@@ -1,5 +1,6 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
+import { MonthlyDashboardDto, WeeklyDashboardDto } from './dto/dashboard.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '@app/common';
 
@@ -35,5 +36,33 @@ export class DashboardController {
   @Get('health')
   health() {
     return { status: 'ok' };
+  }
+
+  /**
+   * @route GET /dashboard/monthly
+   * @desc Get monthly dashboard with week breakdown
+   * @access Private
+   * @headers x-user-id: string
+   * @query month?: string (YYYY-MM format)
+   * @returns Monthly stats with week-by-week breakdown
+   */
+  @Get('monthly')
+  @UseGuards(JwtAuthGuard)
+  getMonthlyDashboard(@CurrentUser() user: any, @Query() query: MonthlyDashboardDto) {
+    return this.dashboardService.getMonthlyDashboard(user.sub, query);
+  }
+
+  /**
+   * @route GET /dashboard/weekly
+   * @desc Get weekly dashboard with day breakdown
+   * @access Private
+   * @headers x-user-id: string
+   * @query week?: string (YYYY-Www format)
+   * @returns Weekly stats with day-by-day breakdown
+   */
+  @Get('weekly')
+  @UseGuards(JwtAuthGuard)
+  getWeeklyDashboard(@CurrentUser() user: any, @Query() query: WeeklyDashboardDto) {
+    return this.dashboardService.getWeeklyDashboard(user.sub, query);
   }
 }

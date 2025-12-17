@@ -57,6 +57,7 @@ A microservice-based backend with service registry for managing tiffin (meal) se
 - Role-based access control (USER, ADMIN)
 - JWT-based authentication (access + refresh tokens)
 - Single-day meal management (create, list, update, cancel)
+- **Bulk meal scheduling** (multiple dates, date ranges, day filters)
 - Meal types: BREAKFAST, LUNCH, DINNER, CUSTOM
 - Meal price management per user
 - Auto-pricing: meals use current price settings
@@ -263,6 +264,11 @@ POST http://localhost:3003/meals
 Headers: Authorization: Bearer <accessToken>
 Body: { "date": "2024-01-15", "mealType": "LUNCH", "count": 2, "note": "Extra spicy" }
 
+# Create bulk meals (multiple dates)
+POST http://localhost:3003/meals/bulk
+Headers: Authorization: Bearer <accessToken>
+Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH", "count": 1, "skipWeekends": true }
+
 # List meals (with optional filters)
 GET http://localhost:3003/meals?date=2024-01-15&mealType=LUNCH
 Headers: Authorization: Bearer <accessToken>
@@ -272,9 +278,19 @@ PATCH http://localhost:3003/meals/:id
 Headers: Authorization: Bearer <accessToken>
 Body: { "count": 3, "note": "Updated note" }
 
+# Update bulk meals
+PATCH http://localhost:3003/meals/bulk
+Headers: Authorization: Bearer <accessToken>
+Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH", "count": 2 }
+
 # Cancel meal (soft delete)
 DELETE http://localhost:3003/meals/:id
 Headers: Authorization: Bearer <accessToken>
+
+# Cancel bulk meals
+DELETE http://localhost:3003/meals/bulk
+Headers: Authorization: Bearer <accessToken>
+Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH" }
 ```
 
 ### Dashboard (Private)

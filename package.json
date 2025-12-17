@@ -10,15 +10,20 @@
     "start:admin": "cd backend && npm run start:admin",
     "start:frontend": "cd frontend && npm run dev",
     "start:db": "docker-compose up -d db",
+    "start:all": "start-all.bat",
+    "stop:all": "stop-all.bat",
     
     "build:backend": "cd backend && npm run build:all",
     "build:frontend": "cd frontend && npm run build",
     "build:all": "npm run build:backend && npm run build:frontend",
     
     "setup": "cd backend && npm run setup",
+    "setup:full": "setup.bat",
     "migrate": "cd backend && npm run migrate",
     "seed": "cd backend && npm run seed",
     "check": "cd backend && npm run check",
+    "health": "health-check.bat",
+    "test:api": "test-api.bat",
     
     "docker:up": "docker-compose up -d",
     "docker:build": "docker-compose up --build -d",

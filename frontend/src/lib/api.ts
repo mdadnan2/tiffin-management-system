@@ -94,8 +94,14 @@ export const api = {
       mealApi.get<Meal[]>('/meals', { params }),
     create: (data: { date: string; mealType: string; count: number; note?: string }) => 
       mealApi.post<Meal>('/meals', data),
-    createBulk: (data: { dates: string[]; mealType: string; count: number; note?: string }) => 
+    createBulk: (data: { dates?: string[]; startDate?: string; endDate?: string; daysOfWeek?: number[]; skipWeekends?: boolean; mealType: string; count: number; note?: string }) => 
       mealApi.post('/meals/bulk', data),
+    bulkUpdate: (data: { startDate: string; endDate: string; mealType?: string; count?: number; note?: string }) => 
+      mealApi.patch('/meals/bulk', data),
+    bulkCancel: (data: { startDate: string; endDate: string; mealType?: string }) => 
+      mealApi.delete('/meals/bulk', { data }),
+    getCalendar: (params?: { month?: string; week?: string }) => 
+      mealApi.get('/meals/calendar', { params }),
     update: (id: string, data: { count?: number; note?: string }) => 
       mealApi.patch<Meal>(`/meals/${id}`, data),
     delete: (id: string) => 
@@ -103,6 +109,8 @@ export const api = {
   },
   dashboard: {
     get: () => mealApi.get<Dashboard>('/dashboard'),
+    monthly: (params?: { month?: string }) => mealApi.get('/dashboard/monthly', { params }),
+    weekly: (params?: { week?: string }) => mealApi.get('/dashboard/weekly', { params }),
   },
   price: {
     get: () => userApi.get<PriceSetting>('/users/me/price'),

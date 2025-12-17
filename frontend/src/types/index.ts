@@ -24,6 +24,7 @@ export interface Meal {
   count: number;
   priceAtTime: number;
   status: MealStatus;
+  isBulkScheduled: boolean;
   note?: string;
   createdAt: string;
   updatedAt: string;

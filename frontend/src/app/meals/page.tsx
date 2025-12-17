@@ -83,8 +83,15 @@ export default function MealsPage() {
     try {
       setPageLoading(true);
       const params: any = {};
-      if (filterStartDate) params.startDate = filterStartDate;
-      if (filterEndDate) params.endDate = filterEndDate;
+      
+      // Show past + today meals unless user applies custom filters
+      if (!filterStartDate && !filterEndDate) {
+        params.endDate = today;
+      } else {
+        if (filterStartDate) params.startDate = filterStartDate;
+        if (filterEndDate) params.endDate = filterEndDate;
+      }
+      
       if (filterType !== 'ALL') params.mealType = filterType;
       const { data } = await api.meals.list(params);
       setMeals(data);
@@ -97,8 +104,10 @@ export default function MealsPage() {
 
   const loadScheduledMeals = async () => {
     try {
-      const { data } = await api.meals.list();
-      setScheduledMeals(data);
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await api.meals.list({ startDate: today });
+      const bulkScheduled = data.filter(m => m.status === 'ACTIVE' && m.isBulkScheduled);
+      setScheduledMeals(bulkScheduled);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to load scheduled meals');
     }
@@ -273,16 +282,19 @@ export default function MealsPage() {
                     <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-white" />
                     </div>
-                    Scheduled Meals
+                    Upcoming Schedule
                   </CardTitle>
-                  <CardDescription>Upcoming meals from today onwards</CardDescription>
+                  <CardDescription>Your scheduled meals from today onwards</CardDescription>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setShowScheduled(!showScheduled)}
                 >
-                  {showScheduled ? 'Hide' : 'Show'} ({scheduledMeals.length})
+                  {showScheduled ? 'Hide' : 'Show'} ({scheduledMeals.filter(m => {
+                    const mealDate = new Date(m.date).toISOString().split('T')[0];
+                    return mealDate >= today && m.status === 'ACTIVE';
+                  }).length})
                 </Button>
               </div>
             </CardHeader>
@@ -551,8 +563,8 @@ export default function MealsPage() {
             <CardHeader>
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <div>
-                  <CardTitle className="text-2xl">Your Meal Orders</CardTitle>
-                  <CardDescription>View and manage all your meals</CardDescription>
+                  <CardTitle className="text-2xl">Meal History</CardTitle>
+                  <CardDescription>View your past meal orders including today</CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" onClick={() => setQuickFilter('today')}>Today</Button>
@@ -622,7 +634,7 @@ export default function MealsPage() {
                       <UtensilsCrossed className="h-10 w-10 text-muted-foreground" />
                     </div>
                     <p className="text-lg font-medium text-muted-foreground">No meals yet</p>
-                    <p className="text-sm text-muted-foreground mt-1">Add your first meal to get started!</p>
+                    <p className="text-sm text-muted-foreground mt-1">Your meal history including today will appear here</p>
                   </div>
                 ) : (
                   filteredMeals.map((meal, index) => {
