@@ -98,13 +98,7 @@ export default function Login() {
               </Button>
             </form>
             
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground text-center">
-                Demo: <span className="font-mono text-foreground">demo@tiffin.com</span> / <span className="font-mono text-foreground">demo123</span>
-              </p>
-            </div>
-            
-            <p className="text-center text-sm text-muted-foreground mt-4">
+            <p className="text-center text-sm text-muted-foreground mt-6">
               Don't have an account?{' '}
               <Link href="/register" className="text-primary hover:underline font-medium">
                 Register
