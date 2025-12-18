@@ -21,8 +21,15 @@ export class DashboardService {
    * - Returns dashboard object with all metrics
    */
   async getUserDashboard(userId: string) {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
     const meals = await this.prisma.mealRecord.findMany({
-      where: { userId, status: MealStatus.ACTIVE },
+      where: { 
+        userId, 
+        status: MealStatus.ACTIVE,
+        date: { lte: today }
+      },
       orderBy: { date: 'asc' },
     });
 
@@ -69,12 +76,16 @@ export class DashboardService {
 
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    const finalEndDate = endDate > today ? today : endDate;
 
     const meals = await this.prisma.mealRecord.findMany({
       where: {
         userId,
         status: MealStatus.ACTIVE,
-        date: { gte: startDate, lte: endDate },
+        date: { gte: startDate, lte: finalEndDate },
       },
       orderBy: { date: 'asc' },
     });
@@ -95,6 +106,9 @@ export class DashboardService {
       return acc;
     }, {} as Record<string, number>);
 
+    // Count unique days with meals
+    const uniqueDays = new Set(meals.map(meal => meal.date.toISOString().split('T')[0])).size;
+
     // Group by week
     const byWeek = meals.reduce((acc, meal) => {
       const date = new Date(meal.date);
@@ -111,6 +125,7 @@ export class DashboardService {
       byType,
       totalAmount: totalAmount.toNumber(),
       amountByType,
+      daysWithMeals: uniqueDays,
       byWeek,
     };
   }
@@ -135,12 +150,16 @@ export class DashboardService {
     const daysOffset = (week - 1) * 7;
     const startDate = new Date(firstDayOfYear.getTime() + daysOffset * 24 * 60 * 60 * 1000);
     const endDate = new Date(startDate.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+    
+    const finalEndDate = endDate > today ? today : endDate;
 
     const meals = await this.prisma.mealRecord.findMany({
       where: {
         userId,
         status: MealStatus.ACTIVE,
-        date: { gte: startDate, lte: endDate },
+        date: { gte: startDate, lte: finalEndDate },
       },
       orderBy: { date: 'asc' },
     });

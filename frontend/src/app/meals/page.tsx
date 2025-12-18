@@ -68,7 +68,7 @@ export default function MealsPage() {
         setFilterEndDate(today.toISOString().split('T')[0]);
         break;
       case 'month':
-        start.setMonth(today.getMonth() - 1);
+        start.setDate(1);
         setFilterStartDate(start.toISOString().split('T')[0]);
         setFilterEndDate(today.toISOString().split('T')[0]);
         break;
@@ -84,13 +84,8 @@ export default function MealsPage() {
       setPageLoading(true);
       const params: any = {};
       
-      // Show past + today meals unless user applies custom filters
-      if (!filterStartDate && !filterEndDate) {
-        params.endDate = today;
-      } else {
-        if (filterStartDate) params.startDate = filterStartDate;
-        if (filterEndDate) params.endDate = filterEndDate;
-      }
+      if (filterStartDate) params.startDate = filterStartDate;
+      if (filterEndDate) params.endDate = filterEndDate;
       
       if (filterType !== 'ALL') params.mealType = filterType;
       const { data } = await api.meals.list(params);
@@ -106,8 +101,8 @@ export default function MealsPage() {
     try {
       const today = new Date().toISOString().split('T')[0];
       const { data } = await api.meals.list({ startDate: today });
-      const bulkScheduled = data.filter(m => m.status === 'ACTIVE' && m.isBulkScheduled);
-      setScheduledMeals(bulkScheduled);
+      const futureScheduled = data.filter(m => m.status === 'ACTIVE');
+      setScheduledMeals(futureScheduled);
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to load scheduled meals');
     }
@@ -220,12 +215,13 @@ export default function MealsPage() {
   };
 
   useEffect(() => {
-    if (filterStartDate || filterEndDate || filterType !== 'ALL') {
-      loadMeals();
-    }
+    loadMeals();
   }, [filterStartDate, filterEndDate, filterType]);
 
-  const filteredMeals = meals;
+  const filteredMeals = meals.filter(meal => {
+    const mealDate = new Date(meal.date).toISOString().split('T')[0];
+    return mealDate <= today;
+  });
 
   if (pageLoading) {
     return (
@@ -393,7 +389,7 @@ export default function MealsPage() {
                                       {new Date(meal.date).toLocaleDateString('en-IN', { month: 'short' })}
                                     </p>
                                     <div className="mt-1">
-                                      {isPast && !isCancelled ? (
+                                      {(isPast || isToday) && !isCancelled ? (
                                         <Check className="h-5 w-5 text-green-600 dark:text-green-400 mx-auto" />
                                       ) : isCancelled ? (
                                         <X className="h-5 w-5 text-red-600 dark:text-red-400 mx-auto" />

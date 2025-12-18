@@ -95,6 +95,20 @@ export default function CalendarView() {
             </Button>
           </div>
         </div>
+        <div className="flex items-center gap-4 mt-4 justify-center flex-wrap">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-500"></div>
+            <span className="text-sm font-medium">Consumed</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border-2 border-primary"></div>
+            <span className="text-sm font-medium">Today</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 border-2 border-orange-500"></div>
+            <span className="text-sm font-medium">Scheduled</span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -117,13 +131,21 @@ export default function CalendarView() {
               const meals = calendarData[dateStr] || [];
               const today = new Date().toISOString().split('T')[0];
               const isToday = dateStr === today;
+              const isPast = dateStr < today;
+              const isFuture = dateStr > today;
 
               return (
                 <div
                   key={day}
-                  className={`aspect-square border-2 rounded-lg p-2 ${
-                    isToday ? 'border-primary bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30' : 'border-gray-400 dark:border-gray-700 bg-gray-300 dark:bg-gray-800 hover:bg-gray-400 dark:hover:bg-gray-700'
-                  } hover:shadow-md transition-all`}
+                  className={`aspect-square border-2 rounded-lg p-2 hover:shadow-md hover:scale-105 transition-all cursor-pointer ${
+                    isToday 
+                      ? 'border-primary bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 hover:from-blue-200 hover:to-indigo-200 dark:hover:from-blue-800/40 dark:hover:to-indigo-800/40' 
+                      : isPast && meals.length > 0
+                      ? 'border-green-500 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 hover:from-green-200 hover:to-emerald-200 dark:hover:from-green-800/40 dark:hover:to-emerald-800/40'
+                      : isFuture && meals.length > 0
+                      ? 'border-orange-500 bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 hover:from-orange-200 hover:to-amber-200 dark:hover:from-orange-800/40 dark:hover:to-amber-800/40'
+                      : 'border-gray-400 dark:border-gray-700 bg-gray-300 dark:bg-gray-800 hover:bg-gray-400 dark:hover:bg-gray-700'
+                  }`}
                 >
                   <div className="text-sm font-semibold mb-1">{day}</div>
                   <div className="space-y-1">

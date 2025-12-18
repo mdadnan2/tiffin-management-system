@@ -278,12 +278,15 @@ export class MealService {
    * Bulk update meals in date range
    */
   async bulkUpdateMeals(userId: string, dto: BulkUpdateDto) {
+    const startDate = new Date(dto.startDate + 'T00:00:00.000Z');
+    const endDate = new Date(dto.endDate + 'T23:59:59.999Z');
+
     const where: any = {
       userId,
       status: MealStatus.ACTIVE,
       date: {
-        gte: new Date(dto.startDate),
-        lte: new Date(dto.endDate),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -300,6 +303,10 @@ export class MealService {
       data: updateData,
     });
 
+    if (result.count === 0) {
+      throw new BadRequestException('No meals found matching the criteria');
+    }
+
     return { updated: result.count };
   }
 
@@ -307,12 +314,15 @@ export class MealService {
    * Bulk cancel meals in date range
    */
   async bulkCancelMeals(userId: string, dto: BulkDeleteDto) {
+    const startDate = new Date(dto.startDate + 'T00:00:00.000Z');
+    const endDate = new Date(dto.endDate + 'T23:59:59.999Z');
+
     const where: any = {
       userId,
       status: MealStatus.ACTIVE,
       date: {
-        gte: new Date(dto.startDate),
-        lte: new Date(dto.endDate),
+        gte: startDate,
+        lte: endDate,
       },
     };
 
@@ -324,6 +334,10 @@ export class MealService {
       where,
       data: { status: MealStatus.CANCELLED },
     });
+
+    if (result.count === 0) {
+      throw new BadRequestException('No meals found matching the criteria');
+    }
 
     return { cancelled: result.count };
   }

@@ -80,6 +80,51 @@ export class MealController {
   }
 
   /**
+   * @route GET /meals/calendar
+   * @desc Get meals grouped by date in calendar format
+   * @access Private
+   * @headers x-user-id: string
+   * @query month?: string (YYYY-MM format), week?: string (YYYY-Www format)
+   * @returns { "YYYY-MM-DD": MealRecord[] }
+   */
+  @Get('calendar')
+  @UseGuards(JwtAuthGuard)
+  getCalendar(@CurrentUser() user: any, @Query() query: CalendarQueryDto) {
+    return this.mealService.getCalendar(user.sub, query);
+  }
+
+  /**
+   * @route PATCH /meals/bulk
+   * @desc Update multiple meals in date range
+   * @access Private
+   * @headers x-user-id: string
+   * @body { startDate: string, endDate: string, mealType?: string, count?: number, note?: string }
+   * @returns { updated: number }
+   */
+  @Patch('bulk')
+  @UseGuards(JwtAuthGuard)
+  bulkUpdateMeals(@CurrentUser() user: any, @Body() dto: BulkUpdateDto) {
+    console.log('🎯 Bulk Update Request Received');
+    console.log('User:', user);
+    console.log('DTO:', dto);
+    return this.mealService.bulkUpdateMeals(user.sub, dto);
+  }
+
+  /**
+   * @route DELETE /meals/bulk
+   * @desc Cancel multiple meals in date range
+   * @access Private
+   * @headers x-user-id: string
+   * @body { startDate: string, endDate: string, mealType?: string }
+   * @returns { cancelled: number }
+   */
+  @Delete('bulk')
+  @UseGuards(JwtAuthGuard)
+  bulkCancelMeals(@CurrentUser() user: any, @Body() dto: BulkDeleteDto) {
+    return this.mealService.bulkCancelMeals(user.sub, dto);
+  }
+
+  /**
    * @route PATCH /meals/:id
    * @desc Update meal count or note
    * @access Private
@@ -106,47 +151,5 @@ export class MealController {
   @UseGuards(JwtAuthGuard)
   cancelMeal(@CurrentUser() user: any, @Param('id') id: string) {
     return this.mealService.cancelMeal(user.sub, id);
-  }
-
-  /**
-   * @route GET /meals/calendar
-   * @desc Get meals grouped by date in calendar format
-   * @access Private
-   * @headers x-user-id: string
-   * @query month?: string (YYYY-MM format), week?: string (YYYY-Www format)
-   * @returns { "YYYY-MM-DD": MealRecord[] }
-   */
-  @Get('calendar')
-  @UseGuards(JwtAuthGuard)
-  getCalendar(@CurrentUser() user: any, @Query() query: CalendarQueryDto) {
-    return this.mealService.getCalendar(user.sub, query);
-  }
-
-  /**
-   * @route PATCH /meals/bulk
-   * @desc Update multiple meals in date range
-   * @access Private
-   * @headers x-user-id: string
-   * @body { startDate: string, endDate: string, mealType?: string, count?: number, note?: string }
-   * @returns { updated: number }
-   */
-  @Patch('bulk')
-  @UseGuards(JwtAuthGuard)
-  bulkUpdateMeals(@CurrentUser() user: any, @Body() dto: BulkUpdateDto) {
-    return this.mealService.bulkUpdateMeals(user.sub, dto);
-  }
-
-  /**
-   * @route DELETE /meals/bulk
-   * @desc Cancel multiple meals in date range
-   * @access Private
-   * @headers x-user-id: string
-   * @body { startDate: string, endDate: string, mealType?: string }
-   * @returns { cancelled: number }
-   */
-  @Delete('bulk')
-  @UseGuards(JwtAuthGuard)
-  bulkCancelMeals(@CurrentUser() user: any, @Body() dto: BulkDeleteDto) {
-    return this.mealService.bulkCancelMeals(user.sub, dto);
   }
 }

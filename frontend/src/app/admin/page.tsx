@@ -229,7 +229,7 @@ export default function AdminPage() {
       <div className="container mx-auto p-6 max-w-7xl">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary via-accent to-primary shadow-2xl flex items-center justify-center animate-pulse">
+            <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary via-accent to-primary shadow-2xl flex items-center justify-center">
               <Users className="h-8 w-8 text-white" />
             </div>
             <div>

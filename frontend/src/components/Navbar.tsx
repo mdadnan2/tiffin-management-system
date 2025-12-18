@@ -86,12 +86,6 @@ export default function Navbar() {
               Calendar
             </Button>
           </Link>
-          <Link href="/meals/operations">
-            <Button variant="ghost" size="sm" className="gap-2">
-              <Settings className="h-4 w-4" />
-              Operations
-            </Button>
-          </Link>
           <Link href="/analytics">
             <Button variant="ghost" size="sm" className="gap-2">
               <BarChart3 className="h-4 w-4" />
