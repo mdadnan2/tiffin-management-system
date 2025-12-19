@@ -82,6 +82,32 @@ export class AuthService {
 
   /**
    * Refresh access token
+   * - Validates refresh token
+   * - Validates user exists
+   * - Generates new access and refresh tokens
+   * - Returns new tokens
+   */
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: this.configService.get('JWT_REFRESH_SECRET'),
+      });
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: payload.sub },
+        select: { id: true, email: true, role: true },
+      });
+
+      if (!user) throw new UnauthorizedException('User not found');
+
+      return this.generateTokens(user.id, user.email, user.role);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  /**
+   * Refresh access token (legacy method for guards)
    * - Validates user exists
    * - Generates new access and refresh tokens
    * - Returns new tokens

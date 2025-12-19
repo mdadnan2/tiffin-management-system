@@ -1,4 +1,5 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles, RolesGuard } from '@app/common';
@@ -9,6 +10,7 @@ import { Roles, RolesGuard } from '@app/common';
  * Expects x-user-role header from API Gateway
  * All routes require ADMIN role
  */
+@ApiTags('Admin')
 @Controller('admin')
 export class AdminController {
   constructor(private adminService: AdminService) {}
@@ -21,6 +23,9 @@ export class AdminController {
    * @returns User[] with mealCount and totalAmount
    */
   @Get('users')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all users (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   getAllUsers() {
@@ -36,6 +41,9 @@ export class AdminController {
    * @returns { user: User, totalMeals: number, byType: object, totalAmount: number }
    */
   @Get('users/:id/summary')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user summary (Admin only)' })
+  @ApiResponse({ status: 200, description: 'User summary retrieved' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   getUserSummary(@Param('id') id: string) {
@@ -49,6 +57,8 @@ export class AdminController {
    * @returns { status: 'ok' }
    */
   @Get('health')
+  @ApiOperation({ summary: 'Health check' })
+  @ApiResponse({ status: 200, description: 'Service is healthy' })
   health() {
     return { status: 'ok' };
   }

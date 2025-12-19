@@ -1,4 +1,5 @@
 import { Controller, Get, Patch, Body, Param, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PriceService } from './price.service';
 import { UpdatePriceDto } from './dto/price.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -9,6 +10,7 @@ import { CurrentUser, Roles, RolesGuard } from '@app/common';
  * Routes: /users/me/price, /admin/users/:userId/price
  * Expects x-user-id and x-user-role headers from API Gateway
  */
+@ApiTags('Price Settings')
 @Controller()
 export class PriceController {
   constructor(private priceService: PriceService) {}
@@ -21,9 +23,12 @@ export class PriceController {
    * @returns { userId: string, breakfast: Decimal, lunch: Decimal, dinner: Decimal, custom: Decimal }
    */
   @Get('users/me/price')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get my meal prices' })
+  @ApiResponse({ status: 200, description: 'Price settings retrieved' })
   @UseGuards(JwtAuthGuard)
   getMyPrice(@CurrentUser() user: any) {
-    return this.priceService.getPrice(user.sub);
+    return this.priceService.getPrice(user.id || user.sub);
   }
 
   /**
@@ -35,9 +40,12 @@ export class PriceController {
    * @returns Updated PriceSetting
    */
   @Patch('users/me/price')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update my meal prices' })
+  @ApiResponse({ status: 200, description: 'Price settings updated' })
   @UseGuards(JwtAuthGuard)
   updateMyPrice(@CurrentUser() user: any, @Body() dto: UpdatePriceDto) {
-    return this.priceService.updatePrice(user.sub, dto);
+    return this.priceService.updatePrice(user.id || user.sub, dto);
   }
 
   /**
@@ -49,6 +57,9 @@ export class PriceController {
    * @returns PriceSetting
    */
   @Get('admin/users/:userId/price')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user meal prices (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Price settings retrieved' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   getUserPrice(@Param('userId') userId: string) {

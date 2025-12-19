@@ -1,12 +1,14 @@
 import { Controller, Post, Get, Body, UseGuards, Request } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto';
 
 /**
  * Auth Controller - Handles authentication endpoints
  * Routes: /auth/register, /auth/login, /auth/refresh, /auth/me
  */
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -19,6 +21,8 @@ export class AuthController {
    * @returns { user: User, accessToken: string, refreshToken: string }
    */
   @Post('register')
+  @ApiOperation({ summary: 'Register new user' })
+  @ApiResponse({ status: 201, description: 'User registered successfully' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -31,8 +35,10 @@ export class AuthController {
    * @returns { user: User, accessToken: string, refreshToken: string }
    */
   @Post('login')
+  @ApiOperation({ summary: 'Login user' })
+  @ApiResponse({ status: 200, description: 'Login successful' })
   @UseGuards(AuthGuard('local'))
-  async login(@Request() req) {
+  async login(@Body() dto: LoginDto, @Request() req) {
     try {
       return await this.authService.login(req.user);
     } catch (error) {
@@ -49,9 +55,10 @@ export class AuthController {
    * @returns { accessToken: string, refreshToken: string }
    */
   @Post('refresh')
-  @UseGuards(AuthGuard('jwt-refresh'))
-  refresh(@Request() req) {
-    return this.authService.refreshTokens(req.user.id);
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  refresh(@Body() dto: RefreshTokenDto) {
+    return this.authService.refreshToken(dto.refreshToken);
   }
 
   /**
@@ -61,6 +68,9 @@ export class AuthController {
    * @returns { id: string, email: string, name: string, role: string }
    */
   @Get('me')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({ status: 200, description: 'User info retrieved' })
   @UseGuards(AuthGuard('jwt'))
   getMe(@Request() req) {
     const user = req.user;
@@ -74,6 +84,8 @@ export class AuthController {
    * @returns { status: 'ok' }
    */
   @Get('health')
+  @ApiOperation({ summary: 'Health check' })
+  @ApiResponse({ status: 200, description: 'Service is healthy' })
   health() {
     return { status: 'ok' };
   }
