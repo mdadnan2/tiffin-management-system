@@ -1,13 +1,60 @@
-# Tiffin Management System - Service Registry Architecture
+# Tiffin Management System
 
-A microservice-based backend with service registry for managing tiffin (meal) services built with NestJS, TypeScript, Prisma, PostgreSQL, and Docker.
+A full-stack meal management application built with **NestJS**, **Prisma**, **PostgreSQL**, and **Next.js**. This project demonstrates a production-ready microservice architecture with service discovery, authentication, role-based access control, and RESTful API design.
+
+> **Note**: This is a portfolio project designed to showcase backend engineering skills, architectural patterns, and best practices. It is not intended for production use.
+
+---
+
+## 📖 Overview
+
+The Tiffin Management System allows users to schedule and manage daily meals (breakfast, lunch, dinner) with automatic pricing, bulk scheduling, and analytics dashboards. Admins can monitor user activity and meal statistics.
+
+**Key Features:**
+- User authentication with JWT (access + refresh tokens)
+- Role-based access control (USER, ADMIN)
+- Meal CRUD operations with bulk scheduling
+- Dynamic pricing per user with price locking
+- Dashboard analytics with totals and breakdowns
+- Service discovery using Consul
+- Dockerized development environment
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend (Primary Focus)
+- **Framework**: NestJS (TypeScript)
+- **ORM**: Prisma
+- **Database**: PostgreSQL 15
+- **Authentication**: JWT with bcrypt password hashing
+- **Validation**: class-validator, class-transformer
+- **Service Discovery**: Consul (Docker Hub)
+- **HTTP Client**: Axios
+- **Testing**: Jest
+
+### Frontend (Brief)
+- **Framework**: Next.js 14 (React)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+
+### Infrastructure
+- **Containerization**: Docker, Docker Compose
+- **Database Management**: Prisma Migrate
+- **Service Registry**: Consul
+
+---
 
 ## 🏗️ Architecture
 
+This project uses a **microservice architecture** with independent services communicating through HTTP. Services register with Consul for discovery and health monitoring.
+
+### Service Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                  Service Registry (4000)                     │
-│         Service Discovery + Health Monitoring                │
+│                  Consul (Service Registry)                   │
+│                    Port: 8500                                │
 └──────────────────────────────────────────────────────────────┘
                           ▲
                           │ Register/Heartbeat
@@ -26,110 +73,141 @@ A microservice-based backend with service registry for managing tiffin (meal) se
                    └─────────────┘
 ```
 
-## 📦 Services
+### Request Flow
 
-| Service | Port | Description |
-|---------|------|-------------|
-| **Frontend** | 3000 | Next.js web application |
-| **Consul** | 8500 | Service discovery, health monitoring (Docker Hub) |
-| **Auth Service** | 3001 | User registration, login, JWT token management |
-| **User Service** | 3002 | User profiles, price settings |
-| **Meal Service** | 3003 | Meal CRUD, dashboard analytics |
-| **Admin Service** | 3004 | Admin monitoring, user statistics |
-| **PostgreSQL** | 5432 | Shared database for all services |
-
-## 🚀 Tech Stack
-
-- **Framework**: NestJS (Microservices)
-- **Language**: TypeScript
-- **ORM**: Prisma
-- **Database**: PostgreSQL 15
-- **Auth**: JWT (HS256) with access & refresh tokens
-- **Validation**: class-validator
-- **HTTP Client**: Axios (@nestjs/axios)
-- **Containerization**: Docker & Docker Compose
-- **Testing**: Jest
-
-## ✨ Features
-
-### Phase 0-2 Features
-- User registration and authentication
-- Role-based access control (USER, ADMIN)
-- JWT-based authentication (access + refresh tokens)
-- Single-day meal management (create, list, update, cancel)
-- **Bulk meal scheduling** (multiple dates, date ranges, day filters)
-- Meal types: BREAKFAST, LUNCH, DINNER, CUSTOM
-- Meal price management per user
-- Auto-pricing: meals use current price settings
-- User dashboard with totals and breakdowns
-- Admin monitoring endpoints
-- PostgreSQL persistence
-
-### Phase 3 Features (Consul Integration)
-- **Microservice Architecture**: Independent services with clear boundaries
-- **Consul Service Registry**: Production-ready service discovery from Docker Hub
-- **Auto-Registration**: Services register themselves with Consul on startup
-- **Health Monitoring**: Consul performs automatic HTTP health checks
-- **Web UI**: Consul dashboard at http://localhost:8500/ui
-- **Docker Compose**: Multi-container orchestration for local development
-- **Industry Standard**: Using battle-tested Consul instead of custom registry
-
-## 📋 Prerequisites
-
-- Node.js 18+
-- Docker & Docker Compose
-- npm or yarn
-
-## 🛠️ Getting Started
-
-### Quick Start (3 Steps)
-
-```bash
-# 1. Install dependencies
-npm run install:all
-
-# 2. Setup database (first time only)
-npm run start:db
-npm run setup
-
-# 3. Start all services
-start-all.bat          # Windows (opens 5 terminals)
-# OR manually (start Consul first):
-docker-compose up -d consul
-npm run start:auth     # Terminal 1
-npm run start:user     # Terminal 2
-npm run start:meal     # Terminal 3
-npm run start:admin    # Terminal 4
+```
+Client (Next.js) 
+  → HTTP Request 
+    → NestJS Controller (validation, auth guards)
+      → Service Layer (business logic)
+        → Prisma Client (ORM)
+          → PostgreSQL Database
+            → Response back through layers
 ```
 
-### Environment Setup
+### Service Responsibilities
 
-Create `.env` file in `backend/` directory:
+| Service | Port | Responsibility |
+|---------|------|----------------|
+| **Auth Service** | 3001 | Registration, login, JWT token management |
+| **User Service** | 3002 | User profiles, meal price settings |
+| **Meal Service** | 3003 | Meal CRUD, bulk operations, dashboard |
+| **Admin Service** | 3004 | Admin monitoring, user statistics |
+| **Consul** | 8500 | Service discovery, health checks |
+| **Frontend** | 3000 | Next.js web application |
+
+---
+
+## 📁 Backend Folder Structure
+
+```
+backend/
+├── apps/                           # Microservices (NestJS apps)
+│   ├── auth-service/              # Authentication service
+│   │   └── src/
+│   │       ├── auth/              # Auth module
+│   │       │   ├── dto/           # Data transfer objects
+│   │       │   ├── strategies/    # Passport strategies (JWT, Local, Refresh)
+│   │       │   ├── auth.controller.ts
+│   │       │   ├── auth.service.ts
+│   │       │   └── auth.module.ts
+│   │       ├── prisma/            # Prisma service
+│   │       ├── app.module.ts      # Root module
+│   │       └── main.ts            # Bootstrap
+│   │
+│   ├── user-service/              # User management service
+│   │   └── src/
+│   │       ├── user/              # User CRUD
+│   │       ├── price/             # Price settings
+│   │       └── ...
+│   │
+│   ├── meal-service/              # Meal management service
+│   │   └── src/
+│   │       ├── meal/              # Meal CRUD + bulk operations
+│   │       ├── dashboard/         # Analytics
+│   │       └── ...
+│   │
+│   └── admin-service/             # Admin monitoring service
+│       └── src/
+│           ├── admin/             # Admin endpoints
+│           └── ...
+│
+├── libs/                          # Shared libraries
+│   └── common/
+│       └── src/
+│           ├── decorators/        # Custom decorators (@CurrentUser, @Roles)
+│           ├── guards/            # Auth guards (RolesGuard)
+│           └── consul-client.ts   # Consul registration logic
+│
+├── prisma/
+│   ├── schema.prisma              # Database schema
+│   ├── migrations/                # Migration history
+│   └── seed.ts                    # Seed script (demo users)
+│
+├── test/                          # E2E tests
+├── nest-cli.json                  # NestJS monorepo config
+├── package.json                   # Dependencies & scripts
+├── tsconfig.json                  # TypeScript config
+└── .env                           # Environment variables
+```
+
+### Key Directories Explained
+
+- **apps/**: Each service is an independent NestJS application with its own main.ts entry point
+- **libs/common/**: Shared code (guards, decorators, utilities) used across services
+- **prisma/**: Database schema, migrations, and seed data
+- **test/**: API integration tests
+
+---
+
+## ⚙️ Environment Setup
+
+### Prerequisites
+
+- **Node.js**: 18+ (LTS recommended)
+- **npm** or **yarn**
+- **Docker** & **Docker Compose** (for PostgreSQL and Consul)
+- **PostgreSQL**: 15+ (if running without Docker)
+
+### Environment Variables
+
+Create a `.env` file in the `backend/` directory:
 
 ```env
+# Database
 DATABASE_URL="postgresql://postgres:root@localhost:5432/tiffin_db"
+
+# JWT Configuration
 JWT_SECRET="your-super-secret-jwt-key-change-in-production"
 JWT_EXPIRATION="15m"
 JWT_REFRESH_SECRET="your-super-secret-refresh-key-change-in-production"
 JWT_REFRESH_EXPIRATION="7d"
+
+# Consul Service Discovery
 CONSUL_HOST=localhost
 CONSUL_PORT=8500
 ```
 
-### Demo Users
-
-After running `npm run setup`:
-- **User**: demo@tiffin.com / demo123
-- **Admin**: admin@tiffin.com / demo123
-
-## 🏃 Running the Application
-
-### Option A: Docker Compose (Recommended - Hot Reload Enabled)
-
-Run all services with Docker:
+### Install Dependencies
 
 ```bash
-# 1. Build and start all services (first time)
+# Install all dependencies (backend + frontend)
+npm run install:all
+
+# Or install backend only
+cd backend && npm install
+```
+
+---
+
+## 🚀 Running the Project
+
+### Option 1: Docker Compose (Recommended)
+
+Start all services with hot reload enabled:
+
+```bash
+# 1. Build and start all services
 npm run docker:build
 
 # 2. Setup database (first time only)
@@ -138,309 +216,368 @@ npm run docker:setup
 # 3. View logs
 npm run docker:logs
 
-# For subsequent starts (no rebuild needed)
+# For subsequent starts
 npm run docker:up
 
 # Stop all services
 npm run docker:down
-
-# Restart all services
-npm run docker:restart
 ```
-
-**Hot Reload**: Edit code in `backend/apps/*/src/` and changes auto-reload!
 
 Services will be available at:
-- Frontend: http://localhost:3000
-- Consul UI: http://localhost:8500/ui
-- Auth Service: http://localhost:3001
-- User Service: http://localhost:3002
-- Meal Service: http://localhost:3003
-- Admin Service: http://localhost:3004
+- **Consul UI**: http://localhost:8500/ui
+- **Auth Service**: http://localhost:3001
+- **User Service**: http://localhost:3002
+- **Meal Service**: http://localhost:3003
+- **Admin Service**: http://localhost:3004
+- **Frontend**: http://localhost:3000
 
-### Option B: Local Development (Without Docker)
+### Option 2: Local Development (Without Docker)
 
-Run each service in separate terminal windows:
+Run each service in separate terminals:
 
 ```bash
-# Terminal 1: Start database and Consul
+# Terminal 1: Start PostgreSQL and Consul
 docker-compose up -d db consul
 
-# Terminal 2: Frontend
-npm run start:frontend
-
-# Terminal 3: Auth Service
+# Terminal 2: Auth Service
 npm run start:auth
 
-# Terminal 4: User Service
+# Terminal 3: User Service
 npm run start:user
 
-# Terminal 5: Meal Service
+# Terminal 4: Meal Service
 npm run start:meal
 
-# Terminal 6: Admin Service
+# Terminal 5: Admin Service
 npm run start:admin
+
+# Terminal 6: Frontend (optional)
+npm run start:frontend
 ```
 
-## 📡 API Endpoints
-
-### Service Discovery (Consul)
-
-Discover services from Consul at `http://localhost:8500`
+### First-Time Setup
 
 ```bash
-# Get all registered services
-GET http://localhost:8500/v1/catalog/services
+# 1. Start database
+npm run start:db
 
-# Get service health
-GET http://localhost:8500/v1/health/service/auth-service
+# 2. Run migrations and seed demo users
+npm run setup
 
-# Consul UI (recommended)
-http://localhost:8500/ui
+# Demo users created:
+# - User: demo@tiffin.com / demo123
+# - Admin: admin@tiffin.com / demo123
 ```
 
-Then call services directly:
+---
 
-### Authentication (Public)
+## 🗄️ Database & Prisma
+
+### Schema Overview
+
+The database schema includes:
+- **User**: Authentication, roles, profile
+- **PriceSetting**: Per-user meal pricing
+- **Meal**: Meal records with date, type, count, price snapshot
+
+### Prisma Workflow
 
 ```bash
-# Register new user
-POST http://localhost:3001/auth/register
-Body: { "email": "user@example.com", "password": "password123", "name": "John Doe", "role": "USER" }
+# Generate Prisma Client (after schema changes)
+npm run prisma:generate
+
+# Create a new migration
+npm run migrate
+
+# Apply migrations (production)
+npm run migrate:deploy
+
+# Seed database with demo data
+npm run seed
+
+# Open Prisma Studio (GUI)
+npm run prisma:studio
+```
+
+### Updating the Schema
+
+1. Edit `prisma/schema.prisma`
+2. Run `npm run migrate` to create migration
+3. Run `npm run prisma:generate` to update Prisma Client
+4. Restart services
+
+---
+
+## 🔌 API Layer
+
+### Architecture Pattern
+
+Each service follows the **Controller → Service → Repository** pattern:
+
+```
+Controller (HTTP layer)
+  ↓ validates request with DTOs
+Service (Business logic)
+  ↓ processes data
+Prisma Client (Data access)
+  ↓ queries database
+PostgreSQL
+```
+
+### Example: Meal Creation Flow
+
+```typescript
+// 1. Controller receives request
+@Post()
+@UseGuards(JwtAuthGuard)
+async createMeal(@Body() dto: CreateMealDto, @CurrentUser() user) {
+  return this.mealService.createMeal(user.id, dto);
+}
+
+// 2. Service handles business logic
+async createMeal(userId: string, dto: CreateMealDto) {
+  const price = await this.getPriceForMealType(userId, dto.mealType);
+  return this.prisma.meal.upsert({
+    where: { userId_date_mealType: { userId, date: dto.date, mealType: dto.mealType } },
+    update: { count: dto.count, priceAtTime: price },
+    create: { userId, ...dto, priceAtTime: price }
+  });
+}
+```
+
+### Authentication & Authorization
+
+- **Authentication**: JWT tokens validated by `JwtAuthGuard`
+- **Authorization**: Role-based access with `RolesGuard` and `@Roles()` decorator
+- **Current User**: Extracted via `@CurrentUser()` decorator
+
+```typescript
+@Get('profile')
+@UseGuards(JwtAuthGuard)
+async getProfile(@CurrentUser() user: User) {
+  return user;
+}
+
+@Get('admin/users')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
+async getAllUsers() {
+  return this.adminService.getAllUsers();
+}
+```
+
+### Validation
+
+All DTOs use `class-validator`:
+
+```typescript
+export class CreateMealDto {
+  @IsDateString()
+  date: string;
+
+  @IsEnum(MealType)
+  mealType: MealType;
+
+  @IsInt()
+  @Min(1)
+  count: number;
+}
+```
+
+### Error Handling
+
+NestJS built-in exception filters handle errors:
+- `BadRequestException` (400)
+- `UnauthorizedException` (401)
+- `ForbiddenException` (403)
+- `NotFoundException` (404)
+
+---
+
+## 📜 NPM Scripts
+
+### Setup & Database
+```bash
+npm run start:db          # Start PostgreSQL with Docker
+npm run setup             # Run migrations + seed
+npm run migrate           # Create and apply migration
+npm run seed              # Seed demo users
+npm run prisma:generate   # Generate Prisma Client
+npm run prisma:studio     # Open Prisma Studio GUI
+```
+
+### Development
+```bash
+npm run start:auth        # Start Auth Service (3001)
+npm run start:user        # Start User Service (3002)
+npm run start:meal        # Start Meal Service (3003)
+npm run start:admin       # Start Admin Service (3004)
+npm run start:frontend    # Start Next.js frontend (3000)
+npm run check             # Check Consul registered services
+```
+
+### Build
+```bash
+npm run build:all         # Build all services
+npm run build:auth        # Build specific service
+```
+
+### Docker
+```bash
+npm run docker:build      # Build and start all services
+npm run docker:up         # Start all containers
+npm run docker:down       # Stop all containers
+npm run docker:logs       # View logs
+npm run docker:restart    # Restart all services
+npm run docker:setup      # Run migrations in Docker
+```
+
+### Code Quality
+```bash
+npm run lint              # Lint code
+npm run format            # Format with Prettier
+npm run test              # Run tests
+```
+
+---
+
+## 🌐 Frontend (Brief)
+
+The frontend is built with **Next.js 14** and **TypeScript**.
+
+### Running Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Access at: http://localhost:3000
+
+### Tech Stack
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Axios (API calls)
+
+---
+
+## 📡 API Documentation
+
+### Authentication Endpoints
+
+```bash
+# Register
+POST /auth/register
+Body: { "email", "password", "name", "role" }
 
 # Login
-POST http://localhost:3001/auth/login
-Body: { "email": "demo@tiffin.com", "password": "demo123" }
-Response: { "user": {...}, "accessToken": "...", "refreshToken": "..." }
+POST /auth/login
+Body: { "email", "password" }
+Response: { "accessToken", "refreshToken", "user" }
 
-# Refresh access token
-POST http://localhost:3001/auth/refresh
-Body: { "refreshToken": "..." }
+# Refresh Token
+POST /auth/refresh
+Body: { "refreshToken" }
 
-# Get current user
-GET http://localhost:3001/auth/me
-Headers: Authorization: Bearer <accessToken>
+# Get Current User
+GET /auth/me
+Headers: Authorization: Bearer <token>
 ```
 
-### Users (Private)
+### User Endpoints
 
 ```bash
 # Get own profile
-GET http://localhost:3002/users/profile
-Headers: Authorization: Bearer <accessToken>
+GET /users/profile
+Headers: Authorization: Bearer <token>
 
 # Update own profile
-PATCH http://localhost:3002/users/profile
-Headers: Authorization: Bearer <accessToken>
+PATCH /users/profile
+Headers: Authorization: Bearer <token>
 Body: { "name": "New Name" }
 
 # List all users (admin only)
-GET http://localhost:3002/users
-Headers: Authorization: Bearer <accessToken>
+GET /users
+Headers: Authorization: Bearer <token>
 ```
 
-### Price Settings (Private)
+### Price Settings Endpoints
 
 ```bash
 # Get own meal prices
-GET http://localhost:3002/users/me/price
-Headers: Authorization: Bearer <accessToken>
+GET /users/me/price
+Headers: Authorization: Bearer <token>
 
 # Update own meal prices
-PATCH http://localhost:3002/users/me/price
-Headers: Authorization: Bearer <accessToken>
+PATCH /users/me/price
+Headers: Authorization: Bearer <token>
 Body: { "breakfast": 50, "lunch": 80, "dinner": 70, "custom": 100 }
-
-# Get user's prices (admin only)
-GET http://localhost:3004/admin/users/:userId/price
-Headers: Authorization: Bearer <accessToken>
 ```
 
-### Meals (Private)
+### Meal Endpoints
 
 ```bash
 # Create or update meal
-POST http://localhost:3003/meals
-Headers: Authorization: Bearer <accessToken>
-Body: { "date": "2024-01-15", "mealType": "LUNCH", "count": 2, "note": "Extra spicy" }
+POST /meals
+Headers: Authorization: Bearer <token>
+Body: { "date": "2024-01-15", "mealType": "LUNCH", "count": 2 }
 
-# Create bulk meals (multiple dates)
-POST http://localhost:3003/meals/bulk
-Headers: Authorization: Bearer <accessToken>
+# Create bulk meals
+POST /meals/bulk
+Headers: Authorization: Bearer <token>
 Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH", "count": 1, "skipWeekends": true }
 
-# List meals (with optional filters)
-GET http://localhost:3003/meals?date=2024-01-15&mealType=LUNCH
-Headers: Authorization: Bearer <accessToken>
+# List meals
+GET /meals?date=2024-01-15&mealType=LUNCH
+Headers: Authorization: Bearer <token>
 
 # Update meal
-PATCH http://localhost:3003/meals/:id
-Headers: Authorization: Bearer <accessToken>
-Body: { "count": 3, "note": "Updated note" }
+PATCH /meals/:id
+Headers: Authorization: Bearer <token>
+Body: { "count": 3 }
 
-# Update bulk meals
-PATCH http://localhost:3003/meals/bulk
-Headers: Authorization: Bearer <accessToken>
-Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH", "count": 2 }
-
-# Cancel meal (soft delete)
-DELETE http://localhost:3003/meals/:id
-Headers: Authorization: Bearer <accessToken>
-
-# Cancel bulk meals
-DELETE http://localhost:3003/meals/bulk
-Headers: Authorization: Bearer <accessToken>
-Body: { "startDate": "2024-01-15", "endDate": "2024-01-19", "mealType": "LUNCH" }
+# Cancel meal
+DELETE /meals/:id
+Headers: Authorization: Bearer <token>
 ```
 
-### Dashboard (Private)
+### Dashboard Endpoints
 
 ```bash
 # Get user dashboard
-GET http://localhost:3003/dashboard
-Headers: Authorization: Bearer <accessToken>
+GET /dashboard
+Headers: Authorization: Bearer <token>
 Response: { "totalMeals": 10, "byType": { "LUNCH": 5, "DINNER": 5 }, "totalAmount": 750 }
 ```
 
-### Admin (Admin Only)
+### Admin Endpoints
 
 ```bash
 # Get all users with stats
-GET http://localhost:3004/admin/users
-Headers: Authorization: Bearer <accessToken>
+GET /admin/users
+Headers: Authorization: Bearer <token>
 
 # Get user summary
-GET http://localhost:3004/admin/users/:id/summary
-Headers: Authorization: Bearer <accessToken>
+GET /admin/users/:id/summary
+Headers: Authorization: Bearer <token>
 ```
 
-### Health Checks
+### Health Check Endpoints
 
 ```bash
 # Consul health
 GET http://localhost:8500/v1/status/leader
 
-# Individual service health
-GET http://localhost:3001/auth/health
-GET http://localhost:3002/users/health
-GET http://localhost:3003/meals/health
-GET http://localhost:3004/admin/health
+# Service health
+GET /auth/health
+GET /users/health
+GET /meals/health
+GET /admin/health
 ```
 
-## ✅ Verify Services
-
-Check all registered services:
-
-```bash
-npm run check
-```
-
-Shows all services with their health status.
-
-## 🧪 Testing the System
-
-### 1. Login
-
-```bash
-# Login directly
-curl -X POST http://localhost:3001/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"demo@tiffin.com","password":"demo123"}'
-```
-
-Save the `accessToken` from response.
-
-### 2. Create Meal
-
-```bash
-curl -X POST http://localhost:3003/meals \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <accessToken>" \
-  -d '{"date":"2024-01-15","mealType":"LUNCH","count":2}'
-```
-
-### 3. Get Dashboard
-
-```bash
-curl -X GET http://localhost:3003/dashboard \
-  -H "Authorization: Bearer <accessToken>"
-```
-
-### 4. Admin Access (Login as admin first)
-
-```bash
-# Login as admin
-curl -X POST http://localhost:3001/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@tiffin.com","password":"demo123"}'
-
-# Get all users
-curl -X GET http://localhost:3004/admin/users \
-  -H "Authorization: Bearer <adminAccessToken>"
-```
-
-## 🗂️ Project Structure
-
-```
-tiffin-management/
-├── backend/                        # Backend services
-│   ├── apps/                      # Microservices
-│   │   ├── auth-service/         # Auth Service (3001)
-│   │   │   └── src/
-│   │   │       ├── auth/
-│   │   │       │   ├── dto/
-│   │   │       │   ├── strategies/    # JWT, Local, Refresh strategies
-│   │   │       │   ├── auth.controller.ts
-│   │   │       │   ├── auth.service.ts
-│   │   │       │   └── auth.module.ts
-│   │   │       ├── prisma/
-│   │   │       ├── app.module.ts
-│   │   │       └── main.ts
-│   │   ├── user-service/         # User Service (3002)
-│   │   │   └── src/
-│   │   │       ├── user/
-│   │   │       ├── price/
-│   │   │       ├── prisma/
-│   │   │       ├── app.module.ts
-│   │   │       └── main.ts
-│   │   ├── meal-service/         # Meal Service (3003)
-│   │   │   └── src/
-│   │   │       ├── meal/
-│   │   │       ├── dashboard/
-│   │   │       ├── prisma/
-│   │   │       ├── app.module.ts
-│   │   │       └── main.ts
-│   │   └── admin-service/        # Admin Service (3004)
-│   │       └── src/
-│   │           ├── admin/
-│   │           ├── prisma/
-│   │           ├── app.module.ts
-│   │           └── main.ts
-│   ├── libs/                     # Shared libraries
-│   │   └── common/
-│   │       └── src/
-│   │           ├── decorators/   # @CurrentUser, @Roles
-│   │           ├── guards/       # RolesGuard
-│   │           └── consul-client.ts   # Consul service registration
-│   ├── prisma/
-│   │   ├── schema.prisma        # Database schema
-│   │   └── seed.ts              # Seed script
-│   ├── test/                    # API test files
-│   ├── nest-cli.json            # Monorepo configuration
-│   ├── package.json             # Backend dependencies & scripts
-│   ├── tsconfig.json            # TypeScript config
-│   ├── .env                     # Backend environment variables
-│   └── check-consul.js          # Check Consul registered services
-├── frontend/                     # Next.js application
-│   ├── src/
-│   ├── public/
-│   ├── package.json
-│   └── ...
-├── docker-compose.yml           # Multi-container orchestration
-├── docker-compose.dev.yml       # Development with hot reload
-├── package.json                 # Root monorepo scripts
-└── README.md
-```
+---
 
 ## 📝 Business Rules
 
@@ -454,177 +591,76 @@ tiffin-management/
 - **JWT tokens**: Access token expires in 15 minutes, refresh token in 7 days
 - **Service discovery**: Consul manages service locations and health
 
+---
+
 ## 🔒 Security
 
-- JWT tokens signed with HS256 algorithm
-- Access tokens: short-lived (15 minutes)
-- Refresh tokens: longer-lived (7 days)
 - Passwords hashed with bcrypt (10 rounds)
-- Each service validates JWT tokens independently
-- Services auto-register on startup with heartbeat monitoring
+- JWT tokens with short expiration (15 min access, 7 days refresh)
 - Role-based access control enforced at service level
-- **Production recommendation**: Use RS256 (public/private keys) instead of HS256
+- Input validation on all endpoints
+- SQL injection prevention via Prisma parameterized queries
 
-## 🐳 Docker Commands
+**Production Recommendations:**
+- Use RS256 (asymmetric) instead of HS256 for JWT
+- Implement rate limiting
+- Add CORS configuration
+- Use HTTPS only
+- Store secrets in environment variables or secret managers
 
-```bash
-# Build and start all services
-docker-compose up --build -d
+---
 
-# View logs (all services)
-docker-compose logs -f
+## 🤝 Contribution Guide
 
-# View logs (specific service)
-docker-compose logs -f api-gateway
-docker-compose logs -f auth-service
+### Code Style
+- Follow NestJS conventions
+- Use TypeScript strict mode
+- Format code with Prettier before committing
+- Lint with ESLint
 
-# Stop all services
-docker-compose down
+### Branching Strategy
+- `main`: Production-ready code
+- `develop`: Development branch
+- `feature/*`: New features
+- `fix/*`: Bug fixes
 
-# Stop and remove volumes
-docker-compose down -v
-
-# Restart specific service
-docker-compose restart api-gateway
-
-# Check service status
-docker-compose ps
+### Commit Messages
+Use conventional commits:
+```
+feat: add bulk meal scheduling
+fix: resolve JWT refresh token issue
+docs: update README with Docker instructions
 ```
 
-## 🗄️ Database Commands
+---
 
-```bash
-# Generate Prisma client
-npm run prisma:generate
+## 🐛 Troubleshooting
 
-# Create migration
-npm run migrate
-
-# Deploy migrations (production)
-npm run migrate:deploy
-
-# Seed database
-npm run seed
-
-# Open Prisma Studio (GUI)
-npm run prisma:studio
-```
-
-## 🔧 NPM Scripts
-
-### Setup & Database
-```bash
-npm run start:db          # Start database only
-npm run setup             # Run migrations + seed
-npm run migrate           # Run migrations
-npm run seed              # Seed demo users
-npm run prisma:generate   # Generate Prisma client
-npm run prisma:studio     # Open Prisma Studio GUI
-```
-
-### Development
-```bash
-npm run start:registry    # Start Service Registry
-npm run start:auth        # Start Auth Service
-npm run start:user        # Start User Service
-npm run start:meal        # Start Meal Service
-npm run start:admin       # Start Admin Service
-npm run check             # Check registered services
-```
-
-### Build
-```bash
-npm run build:all         # Build all services
-npm run build:registry    # Build specific service
-```
-
-### Docker
-```bash
-npm run docker:up         # Start all with Docker
-npm run docker:down       # Stop all containers
-npm run docker:logs       # View logs
-npm run docker:restart    # Restart all
-```
-
-### Code Quality
-```bash
-npm run lint              # Lint code
-npm run format            # Format code
-npm run test              # Run tests
-```
-
-## 📊 Monitoring & Logging
-
-Consul monitors:
-- Service registration/deregistration
-- HTTP health checks (every 10 seconds)
-- Service health (passing/failing)
-- Service metadata
-
-Check services:
-```bash
-npm run check
-# Or visit: http://localhost:8500/ui
-```
-
-## 🚧 Known Issues
-
-- **Port conflicts**: If port 8500 is in use, change Consul port in docker-compose.yml
-- **Database connection**: Ensure PostgreSQL is running before starting services
-- **Service registration**: Start Consul first, then services
-- **Docker networking**: Services use `localhost` for local dev, `service-name` for Docker
-
-## 🔮 Future Enhancements (Phase 4+)
-
-- [ ] Client-side load balancing
-- [ ] Service versioning support
-- [ ] Circuit breakers and retry logic
-- [ ] Redis caching for service locations
-- [ ] RabbitMQ message queues for async operations
-- [ ] Event-driven architecture (meal created → notification)
-- [ ] Distributed tracing with Jaeger/Zipkin
-- [ ] Centralized logging with ELK stack
-- [ ] Service mesh (Istio/Linkerd)
-- [ ] Kubernetes deployment with service discovery
-- [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Multi-day meal scheduling
-- [ ] Billing and invoice generation
-- [ ] Email notifications
-- [ ] WebSocket support for real-time updates
-- [ ] Separate databases per service (true microservices)
-
-## 📄 License
-
-MIT
-
-## 🆘 Troubleshooting
-
-### Port already in use
+### Port Already in Use
 ```bash
 # Windows
-netstat -ano | findstr :4000
+netstat -ano | findstr :3001
 taskkill /F /PID <PID>
 
 # Linux/Mac
-lsof -ti:4000 | xargs kill
+lsof -ti:3001 | xargs kill
 ```
 
-### Database not running
+### Database Connection Issues
 ```bash
-docker-compose up -d db
+# Check if PostgreSQL is running
+docker-compose ps
+
+# View database logs
 docker-compose logs db
 ```
 
-### Service won't start
-```bash
-# Rebuild the service
-npm run build:registry  # or build:auth, build:user, etc.
-```
+### Service Not Registering with Consul
+- Ensure Consul is running: `docker-compose up -d consul`
+- Check Consul UI: http://localhost:8500/ui
+- Restart the service
 
-### "Service not found" error
-- Ensure Consul is running: `http://localhost:8500`
-- Check service is registered: `npm run check` or visit Consul UI
-- Restart service to re-register
+---
 
 ## 📚 Additional Documentation
 
@@ -632,10 +668,20 @@ npm run build:registry  # or build:auth, build:user, etc.
 - [CONSUL_SETUP.md](CONSUL_SETUP.md) - Consul setup and usage guide
 - [CLEANUP_SUMMARY.md](CLEANUP_SUMMARY.md) - Migration and cleanup summary
 
+---
+
+## 📄 License & Disclaimer
+
+This project is licensed under the **MIT License**.
+
+**Disclaimer**: This is a portfolio/demo project created for educational and showcase purposes. It is not intended for production use without proper security hardening, testing, and infrastructure setup.
+
+---
+
 ## 📞 Support
 
 For issues and questions, please open an issue on GitHub.
 
 ---
 
-**Built with ❤️ using NestJS, TypeScript, Prisma, and Service Registry Pattern**
+**Built with ❤️ using NestJS, TypeScript, Prisma, and Consul**
