@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdatePriceDto } from './dto/price.dto';
 import { Decimal } from '@prisma/client/runtime/library';
@@ -36,10 +36,22 @@ export class PriceService {
    */
   async updatePrice(userId: string, dto: UpdatePriceDto) {
     const data: any = {};
-    if (dto.breakfast !== undefined) data.breakfast = new Decimal(dto.breakfast);
-    if (dto.lunch !== undefined) data.lunch = new Decimal(dto.lunch);
-    if (dto.dinner !== undefined) data.dinner = new Decimal(dto.dinner);
-    if (dto.custom !== undefined) data.custom = new Decimal(dto.custom);
+    if (dto.breakfast !== undefined) {
+      if (dto.breakfast < 0) throw new BadRequestException('Breakfast price cannot be negative');
+      data.breakfast = new Decimal(dto.breakfast);
+    }
+    if (dto.lunch !== undefined) {
+      if (dto.lunch < 0) throw new BadRequestException('Lunch price cannot be negative');
+      data.lunch = new Decimal(dto.lunch);
+    }
+    if (dto.dinner !== undefined) {
+      if (dto.dinner < 0) throw new BadRequestException('Dinner price cannot be negative');
+      data.dinner = new Decimal(dto.dinner);
+    }
+    if (dto.custom !== undefined) {
+      if (dto.custom < 0) throw new BadRequestException('Custom price cannot be negative');
+      data.custom = new Decimal(dto.custom);
+    }
 
     return this.prisma.priceSetting.upsert({
       where: { userId },

@@ -19,7 +19,7 @@ export class UserService {
       where: { id: userId },
       select: { id: true, email: true, name: true, mobile: true, role: true, createdAt: true },
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException(`User with ID '${userId}' not found`);
     return user;
   }
 
@@ -29,6 +29,9 @@ export class UserService {
    * - Returns updated user object
    */
   async updateProfile(userId: string, dto: UpdateUserDto) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException(`User with ID '${userId}' not found`);
+    
     return this.prisma.user.update({
       where: { id: userId },
       data: { name: dto.name, mobile: dto.mobile },

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MealStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
@@ -55,6 +55,10 @@ export class AdminService {
       where: { id: userId },
       select: { id: true, email: true, name: true, role: true, createdAt: true },
     });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID '${userId}' not found`);
+    }
 
     const meals = await this.prisma.mealRecord.findMany({
       where: { userId, status: MealStatus.ACTIVE },

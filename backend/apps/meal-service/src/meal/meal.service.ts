@@ -72,7 +72,7 @@ export class MealService {
     } else if (dto.startDate && dto.endDate) {
       dates = this.generateDateRange(dto.startDate, dto.endDate, dto.daysOfWeek, dto.skipWeekends);
     } else {
-      throw new BadRequestException('Provide either dates array or startDate/endDate');
+      throw new BadRequestException('Invalid bulk meal request: Provide either "dates" array or "startDate" and "endDate"');
     }
 
     const priceSettings = await this.prisma.priceSetting.findUnique({ where: { userId } });
@@ -125,19 +125,19 @@ export class MealService {
     const end = new Date(endDate);
 
     if (start > end) {
-      throw new BadRequestException('startDate must be before or equal to endDate');
+      throw new BadRequestException(`Invalid date range: startDate (${startDate}) must be before or equal to endDate (${endDate})`);
     }
 
     const daysDiff = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     if (daysDiff > 90) {
-      throw new BadRequestException('Date range cannot exceed 90 days');
+      throw new BadRequestException(`Date range too large: ${daysDiff} days. Maximum allowed is 90 days`);
     }
 
     // Validate daysOfWeek values
     if (daysOfWeek) {
       const invalidDays = daysOfWeek.filter(d => d < 0 || d > 6);
       if (invalidDays.length > 0) {
-        throw new BadRequestException('daysOfWeek must be between 0 (Sunday) and 6 (Saturday)');
+        throw new BadRequestException(`Invalid daysOfWeek values: [${invalidDays.join(', ')}]. Must be between 0 (Sunday) and 6 (Saturday)`);
       }
     }
 
@@ -195,8 +195,11 @@ export class MealService {
    */
   async updateMeal(userId: string, mealId: string, dto: UpdateMealDto) {
     const meal = await this.prisma.mealRecord.findUnique({ where: { id: mealId } });
-    if (!meal || meal.userId !== userId) {
-      throw new BadRequestException('Meal not found');
+    if (!meal) {
+      throw new BadRequestException(`Meal with ID '${mealId}' not found`);
+    }
+    if (meal.userId !== userId) {
+      throw new BadRequestException('You do not have permission to update this meal');
     }
 
     return this.prisma.mealRecord.update({
@@ -213,8 +216,11 @@ export class MealService {
    */
   async cancelMeal(userId: string, mealId: string) {
     const meal = await this.prisma.mealRecord.findUnique({ where: { id: mealId } });
-    if (!meal || meal.userId !== userId) {
-      throw new BadRequestException('Meal not found');
+    if (!meal) {
+      throw new BadRequestException(`Meal with ID '${mealId}' not found`);
+    }
+    if (meal.userId !== userId) {
+      throw new BadRequestException('You do not have permission to cancel this meal');
     }
 
     return this.prisma.mealRecord.update({
@@ -304,7 +310,7 @@ export class MealService {
     });
 
     if (result.count === 0) {
-      throw new BadRequestException('No meals found matching the criteria');
+      throw new BadRequestException(`No active meals found between ${dto.startDate} and ${dto.endDate}${dto.mealType ? ` for meal type ${dto.mealType}` : ''}`);
     }
 
     return { updated: result.count };
@@ -336,7 +342,7 @@ export class MealService {
     });
 
     if (result.count === 0) {
-      throw new BadRequestException('No meals found matching the criteria');
+      throw new BadRequestException(`No active meals found to cancel between ${dto.startDate} and ${dto.endDate}${dto.mealType ? ` for meal type ${dto.mealType}` : ''}`);
     }
 
     return { cancelled: result.count };

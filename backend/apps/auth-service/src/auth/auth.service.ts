@@ -27,7 +27,7 @@ export class AuthService {
    */
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
-    if (existing) throw new ConflictException('Email already registered');
+    if (existing) throw new ConflictException(`User with email '${dto.email}' already exists`);
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
@@ -53,15 +53,19 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     try {
       const user = await this.prisma.user.findUnique({ where: { email } });
-      if (!user) return null;
+      if (!user) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
 
       const valid = await bcrypt.compare(password, user.passwordHash);
-      if (!valid) return null;
+      if (!valid) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
 
       return { id: user.id, email: user.email, name: user.name, role: user.role };
     } catch (error) {
-      console.error('validateUser error:', error);
-      throw error;
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('Authentication failed');
     }
   }
 
@@ -98,11 +102,12 @@ export class AuthService {
         select: { id: true, email: true, role: true },
       });
 
-      if (!user) throw new UnauthorizedException('User not found');
+      if (!user) throw new UnauthorizedException('Invalid refresh token: User not found');
 
       return this.generateTokens(user.id, user.email, user.role);
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }
 
@@ -118,7 +123,7 @@ export class AuthService {
       select: { id: true, email: true, role: true },
     });
 
-    if (!user) throw new UnauthorizedException('User not found');
+    if (!user) throw new UnauthorizedException('User account not found or has been deleted');
 
     return this.generateTokens(user.id, user.email, user.role);
   }
